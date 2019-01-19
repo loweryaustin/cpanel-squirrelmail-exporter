@@ -229,16 +229,16 @@ sub writeLog {
 sub validateLogPath {
 	$logFile = $_[0];
 	
-	if (not File::Spec->file_name_is_absolute( $logFile )) { die "ERROR: The --log-path option only accepts absolute paths. $logFile is not an absolute path." }
+	if (not File::Spec->file_name_is_absolute( $logFile )) { die "ERROR: The --log-path option only accepts absolute paths. $logFile is not an absolute path.\n" }
 	if (-f $logFile and -w $logFile) {
-		if (-z $logFile) { message("Initiating custom log at $logFile", 1, 1, 0) }
+		if (-z $logFile) { message("INFO: Initiating custom log at $logFile", 1, 1, 0) }
 		return 1;
 	} elsif (-d $logFile) {
-		die ("ERROR: The --log-path option does not accept paths to directories. Please provide the path to a file instead. NOTE: The file does not necesarily have to already exist.");
+		die ("ERROR: The --log-path option does not accept paths to directories. Please provide the path to a file instead. NOTE: The file does not necesarily have to already exist.\n");
 	} elsif (not -e $logFile) { 
 		my ($volume,$directories,$file) = File::Spec->splitpath($logFile);
 		make_path $directories;
-		message ("NOTICE: Initiating custom log at $logFile", 1, 1, 0);
+		message ("INFO: Initiating custom log at $logFile", 1, 1, 0);
 		return 1;
 	}
 }
