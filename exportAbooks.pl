@@ -179,6 +179,7 @@ sub abookToCSV {
 sub getSqMailData {
 	my $cpanelAcct = $_[0];
 	my $homeDir = Cpanel::PwCache::gethomedir($cpanelAcct);
+	if (not $homeDir) { message("ERROR: There was a problem locating the home directory of the $cpanelAcct username. Are you sure this a valid cPanel user?", 1, 0, 1) }
 	my $sqMailData = "$homeDir/.sqmaildata";
 	if (not -d $sqMailData) { message("NOTICE: $sqMailData does not exist. It seems that there are no SquirrelMail users for $subject .", 1, 0, 1) }
 	return $sqMailData;
