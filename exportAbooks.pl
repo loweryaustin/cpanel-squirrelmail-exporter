@@ -33,7 +33,7 @@ GetOptions(
     'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'export-dest=s'        => sub {  ($optName, $optValue) = @_; $exportDestPrefix = $optValue; $exportDestPrefix =~ s/\/$//ig; },
     'to-csv'               => \$toCSV,
-    'help'               => \$help,
+    'help'                 => \$help,
     'log-path=s'           => sub { my ($optName, $optValue) = @_; if (validateLogPath($optValue)) { $logFile = $optValue }}
 ) or message("Use --help", 1, 0, 1);
 
