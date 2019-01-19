@@ -15,7 +15,7 @@ use Cpanel::Domain::Owner;
 use Cpanel::PwCache ();
 
 ## Global Vars
-my $toCSV;
+my $toCSV = 1; # Setting this to true by default for now since this is just a placeholder till other export methods are added.
 my $logFile = "/root/cpanel-squirrelmail-export.log";
 my $silent = 0;
 my $epoch = time();
