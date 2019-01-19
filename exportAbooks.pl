@@ -95,9 +95,10 @@ if (scalar @exclusiveOptNames > 1) {
 if ($toCSV){
 	exportToCSV();
 } else {
-	message("ERROR: You must use the --to-csv option.", 1, 0, 1);
+	## TODO: Allow for exporting to other fomats such as vcard, or directly into horde or roundcube
 }
-## TODO: Allow for exporting to other fomats such as vcard, or directly into horde or roundcube
+
+message("INFO: You may review the above output at the following log file: $logFile", 1, 0, 0);
 
 ## Subs
 
