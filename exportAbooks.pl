@@ -27,7 +27,7 @@ my $optValue;
 my @exclusiveOptNames;
 my $help;
 GetOptions(
-    'mostly-silent'               => \$silent,
+    'mostly-silent'        => \$silent,
     'domain=s'             => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'email-acct=s'         => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
