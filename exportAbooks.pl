@@ -172,7 +172,7 @@ sub abookToCSV {
 	}
 	my $csvDestination = "$exportDestDir/$file.csv"; # Ends up being /path/to/csv/export/dir/someone@domain.tld.abook.csv
 	write_file ($csvDestination, $csvAddressBook);
-	message("INFO: Converted $abookPath -> $csvDestination", 1, 1, 0);
+	message("INFO: $epoch Converted $abookPath -> $csvDestination", 1, 1, 0);
 
 }
 
