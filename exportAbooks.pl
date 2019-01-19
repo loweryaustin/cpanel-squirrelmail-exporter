@@ -25,7 +25,7 @@ my $subject;
 my $optName;
 my $optValue; 
 my @exclusiveOptNames;
-
+my $help;
 GetOptions(
     'mostly-silent'               => \$silent,
     'domain=s'             => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
@@ -33,10 +33,56 @@ GetOptions(
     'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'export-dest=s'        => sub {  ($optName, $optValue) = @_; $exportDestPrefix = $optValue; $exportDestPrefix =~ s/\/$//ig; },
     'to-csv'               => \$toCSV,
+    'help'               => \$help,
     'log-path=s'           => sub { my ($optName, $optValue) = @_; if (validateLogPath($optValue)) { $logFile = $optValue }}
-) or message("INFO: No help built in. You're on your own for now.", 1, 0, 1);
+) or message("Use --help", 1, 0, 1);
 
 if ($> != 0) { message("ERROR: This script must be run as the root user.", 1, 0, 1) }
+
+if ($help){
+	(my $message = qq{
+            Usage:
+            $0 [ --domain | --email-acct | --cpanel-acct ] subject
+            
+            This script will convert the squirrellmail address books associated with the subject to csv format.
+            The subject can be one of:
+                - A cPanel account username
+                - A domain name
+                - An individual email address
+
+            This script is designed to be a non-destructive script. This means that it does not delete data, move data, or overwrite existing data.
+            If a bug is encounted (I tested pretty througly so there shouldn't be any.) or if the script is run with undesireable options, there should not be any concern of dataloss.
+
+            The script will create a new directory with the current epoch timestamp in the directory's name to the --export-dest.
+            It will then locate the abook files associated with the specified subject, convert a copy to csv and place that csv file into the new directory.
+
+            The default location for the exported data is /root/cpanel-squirrelmail-exports/csv-export-epoch/
+            It is possible to choose a custom export destination with the --export-dest option.
+
+            Options:
+            --cpanel-acct --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --domain and --email-acct.
+
+            --email-acct ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with --domain and --cpanel-acct.
+
+            --domain -------- REQUIRED - Specify a domain for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --email-acct and --cpanel-acct.
+
+            --to-csv -------- OPTIONAL - Does nothing right now. It is a placeholder for when other exporting methods are added.
+
+            --export-dest --- OPTIONAL - Allows you to specify a custom export destination. The default desitnation is: /root/cpanel-squirrelmail-exports
+
+            --log-path ------ OPTIONAL - Allows you to specify a custom log file location. An absolute path is required. The file does not need pre exist. The default log file is: /root/cpanel-squirrelmail-export.log
+
+            --mostly-silent - OPTIONAL - This was supposed to be silent, but I could only manage mostly silent before I gave up and decided it was more important to ship than to fiddle with it.
+
+            I welcome any improvements, bug reports, commentary, etc in the form of issues and pull requests at the following github page:
+            https://github.com/loweryaustin/cpanel-squirrelmail-exporter
+
+            This software was not created by and is not supported by cPanel. It has been created by Austin Lowery as a fun project in my spare time and is relased under the MIT license.
+
+            }) =~ s/^ {12}//mg;
+	print $message;
+	exit;	
+}
 
 if (scalar @exclusiveOptNames > 1) { 
 	message("ERROR: You must use only one of the following options: --domain --email-acct --cpanel-acct", 1, 0, 1); 
