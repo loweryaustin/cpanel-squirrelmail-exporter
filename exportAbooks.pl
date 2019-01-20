@@ -3,6 +3,7 @@ use 5.010;
 use strict;
 use warnings;
 use IO::Handle;
+use Data::Dumper;
 use Time::Piece;
 use POSIX qw(strftime);
 use File::Spec::Functions;
@@ -32,6 +33,7 @@ GetOptions(
     'domain=s'             => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'email-acct=s'         => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
+    'all'                  => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = 'all';     },
     'export-dest=s'        => sub {  ($optName, $optValue) = @_; $exportDestPrefix = $optValue; $exportDestPrefix =~ s/\/$//ig; },
     'to-csv'               => \$toCSV,
     'no-header'            => \$noHeader,
@@ -44,13 +46,15 @@ if ($> != 0) { message("ERROR: This script must be run as the root user.", 1, 0,
 if ($help){
 	(my $message = qq{
             Usage:
-            $0 [ --domain | --email-acct | --cpanel-acct ] subject
+            $0 [ --domain | --email-acct | --cpanel-acct | --all ] subject
             
             This script will convert the squirrellmail address books associated with the subject to csv format.
             The subject can be one of:
                 - A cPanel account username
                 - A domain name
                 - An individual email address
+
+            If using the --all option, you will not provide a subject. The script will locate all addressbooks found within the /home directory and convert them.
 
             This script is designed to be a non-destructive script. This means that it does not delete data, move data, or overwrite existing data.
             If a bug is encounted (I tested pretty througly so there shouldn't be any.) or if the script is run with undesireable options, there should not be any concern of dataloss.
@@ -62,11 +66,13 @@ if ($help){
             It is possible to choose a custom export destination with the --export-dest option.
 
             Options:
-            --cpanel-acct --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --domain and --email-acct.
+            --all ----------- REQUIRED - Converts all addressbooks found within the /home directory. Mutually exclusive with --cpanel-acct --domain and --email-acct.
+            
+            --cpanel-acct --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --domain --all  and --email-acct.
 
-            --email-acct ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with --domain and --cpanel-acct.
+            --email-acct ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with --domain --all and --cpanel-acct.
 
-            --domain -------- REQUIRED - Specify a domain for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --email-acct and --cpanel-acct.
+            --domain -------- REQUIRED - Specify a domain for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --email-acct --all and --cpanel-acct.
 
             --to-csv -------- OPTIONAL - Does nothing right now. It is a placeholder for when other exporting methods are added.
 
@@ -144,6 +150,12 @@ sub exportToCSV {
 			my $abookPath = "$sqMailData/$file";
 			abookToCSV($abookPath, $exportDestDir);
 		}
+	} elsif ($subjectType eq 'all') {
+		my @files = `find /home/*/.sqmaildata/ -name "*.abook"`; 
+		foreach my $file (@files) {
+			chomp $file;
+			abookToCSV($file, $exportDestDir);	
+		}	
 	} else {
 		message("ERROR: Unexpected subjectType of: $subjectType.", 1, 0, 1);
 	}
