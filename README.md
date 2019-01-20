@@ -43,27 +43,52 @@ This software was not created by and is not supported by cPanel. It has been cre
 ## Examples
 Export all addressbooks found within the /home directory:
 
-`./exportAbooks.pl --all`
+`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all`
+
+```
+[root@srv00001 ~]# perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/rob.california@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/rob.california@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/ryan@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/ryan@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/schrutefarms@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/schrutefarms@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/michaelscott@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/michaelscott@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/pam@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/pam@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/andy@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/andy@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/jim@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/jim@dundermifflin.com.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/terry.gergich@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/terry.gergich@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/gary.gergich@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/gary.gergich@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/larry.gengurch@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/larry.gengurch@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/ron@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/ron@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/dandyandy@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/dandyandy@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/t.haverford@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/t.haverford@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/a.perkins@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/a.perkins@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/april.ludgate@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/april.ludgate@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/parkspawnee/.sqmaildata/l.knope@parks.pawnee.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/l.knope@parks.pawnee.gov.abook.csv
+INFO: 1547989334 Converted /home/section9/.sqmaildata/d.aramaki@section9.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/d.aramaki@section9.gov.abook.csv
+INFO: 1547989334 Converted /home/section9/.sqmaildata/batou@section9.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/batou@section9.gov.abook.csv
+INFO: 1547989334 Converted /home/section9/.sqmaildata/togusa@section9.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/togusa@section9.gov.abook.csv
+INFO: 1547989334 Converted /home/section9/.sqmaildata/m.kusanagi@section9.gov.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/m.kusanagi@section9.gov.abook.csv
+INFO: You may review the above output at the following log file: /root/cpanel-squirrelmail-export.log
+```
 
 Export the addressbook for a single email account:
 
-`./exportAbooks.pl --email-acct user@domain.tld`
+`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --email-acct user@domain.tld`
 
 Export all addressbooks found within a cPanel account:
 
-`./exportAbooks.pl --cpanel-acct cpanelusername`
+`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct cpanelusername`
 
 Export all addressbooks for a domain:
 
-`./exportAbooks.pl --domain domain.tld`
+`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --domain domain.tld`
 
 Export all addressbooks on the server by domain (Will find abooks on all home directories):
 
-`for domain in $( cut -d":" -f1 /etc/userdomains );do ./exportAbooks.pl --domain $domain ;done`
+`for domain in $( cut -d":" -f1 /etc/userdomains );do perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --domain $domain ;done`
 
 Export all addressboks on the server by cpanel username (same result as above):
 
-`for user in $(cut -d":" -f1 /etc/trueuserowners);do ./exportAbooks.pl --cpanel-acct $user ;done`
+`for user in $(cut -d":" -f1 /etc/trueuserowners);do perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct $user ;done`
 
 ## Importing Into Roundcube
 
