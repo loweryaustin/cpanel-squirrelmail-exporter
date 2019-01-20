@@ -107,7 +107,6 @@ message("INFO: You may review the above output at the following log file: $logFi
 ## Subs
 
 sub exportToCSV {
-	message("INFO: Export of $subject to CSV started.", 1, 1, 0);
 	my $exportDestDir = "$exportDestPrefix/csv-export-$epoch";
 	make_path $exportDestDir;
 		
@@ -148,7 +147,6 @@ sub exportToCSV {
 	} else {
 		message("ERROR: Unexpected subjectType of: $subjectType.", 1, 0, 1);
 	}
-	message("INFO: Export of $subject to CSV completed.", 1, 1, 0);
 }
 
 
