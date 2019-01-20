@@ -9,6 +9,8 @@ The subject can be one of:
 - A domain name
 - An individual email address
 
+If using the `--all` option, you will not provide a subject. The script will locate all addressbooks found within the /home directory and convert them.
+
 This script is designed to be a non-destructive script. This means that it does not delete data, move data, or overwrite existing data.
 
 The default location for the exported data is /root/cpanel-squirrelmail-exports/csv-export-epoch/
@@ -29,6 +31,9 @@ The default location for the exported data is /root/cpanel-squirrelmail-exports/
 `--log-path` ------ OPTIONAL - Allows you to specify a custom log file location. An absolute path is required. The file does not need pre exist. The default log file is: /root/cpanel-squirrelmail-export.log
 
 `--mostly-silent` - OPTIONAL - This was supposed to be silent, but I could only manage mostly silent before I gave up and decided it was more important to ship than to fiddle with it.
+
+`--no-header` ----- OPTIONAL - Prevents the creation of the header row when creating the CSV files.
+
 
 I welcome any improvements, bug reports, commentary, etc in the form of issues and pull requests at the following github page:
 https://github.com/loweryaustin/cpanel-squirrelmail-exporter
