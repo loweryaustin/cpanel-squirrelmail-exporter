@@ -26,6 +26,7 @@ my $optName;
 my $optValue; 
 my @exclusiveOptNames;
 my $help;
+my $noHeader;
 GetOptions(
     'mostly-silent'        => \$silent,
     'domain=s'             => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
@@ -33,6 +34,7 @@ GetOptions(
     'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
     'export-dest=s'        => sub {  ($optName, $optValue) = @_; $exportDestPrefix = $optValue; $exportDestPrefix =~ s/\/$//ig; },
     'to-csv'               => \$toCSV,
+    'no-header'            => \$noHeader,
     'help'                 => \$help,
     'log-path=s'           => sub { my ($optName, $optValue) = @_; if (validateLogPath($optValue)) { $logFile = $optValue }}
 ) or message("Use --help", 1, 0, 1);
@@ -73,6 +75,8 @@ if ($help){
             --log-path ------ OPTIONAL - Allows you to specify a custom log file location. An absolute path is required. The file does not need pre exist. The default log file is: /root/cpanel-squirrelmail-export.log
 
             --mostly-silent - OPTIONAL - This was supposed to be silent, but I could only manage mostly silent before I gave up and decided it was more important to ship than to fiddle with it.
+            
+            --no-header ----- OPTIONAL - Prevents the creation of the header row when creating the CSV files.
 
             I welcome any improvements, bug reports, commentary, etc in the form of issues and pull requests at the following github page:
             https://github.com/loweryaustin/cpanel-squirrelmail-exporter
@@ -157,7 +161,9 @@ sub abookToCSV {
 		message("ERROR: Unable to open $abookPath for reading.", 1, 1, 0); 
 		return 0; 
 	}
-	my $csvAddressBook = "";
+	
+	my $csvAddressBook = '"Nickname","First Name","Last Name","Email","Notes"'."\r\n";
+	if ($noHeader) { $csvAddressBook = ""; };
 	while (my $row = <ABOOK>) {
 		my @cols = split(/\|/, $row);
 		my $newRow;
