@@ -16,13 +16,13 @@ This script is designed to be a non-destructive script. This means that it does 
 The default location for the exported data is /root/cpanel-squirrelmail-exports/csv-export-epoch/
 
 ## Options:
-`--all` ----------- REQUIRED - Converts all addressbooks found within the /home directory. Mutually exclusive with --cpanel-acct --domain and --email-acct.
+`--all` ----------- REQUIRED - Converts all addressbooks found within the /home directory. Mutually exclusive with `--cpanel-acct` `--domain` and `--email-acct`.
 
-`--cpanel-acct` --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --domain and --email-acct.
+`--cpanel-acct` --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with `--all` `--domain` and `--email-acct`.
 
-`--email-acct` ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with --domain and --cpanel-acct.
+`--email-acct` ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with `--all` `--domain` and `--cpanel-acct`.
 
-`--domain` -------- REQUIRED - Specify a domain for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --email-acct and --cpanel-acct.
+`--domain` -------- REQUIRED - Specify a domain for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with `--all` `--email-acct` and `--cpanel-acct`.
 
 `--to-csv` -------- OPTIONAL - Does nothing right now. It is a placeholder for when other exporting methods are added.
 
