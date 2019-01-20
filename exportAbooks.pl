@@ -57,13 +57,8 @@ if ($help){
             If using the --all option, you will not provide a subject. The script will locate all addressbooks found within the /home directory and convert them.
 
             This script is designed to be a non-destructive script. This means that it does not delete data, move data, or overwrite existing data.
-            If a bug is encounted (I tested pretty througly so there shouldn't be any.) or if the script is run with undesireable options, there should not be any concern of dataloss.
-
-            The script will create a new directory with the current epoch timestamp in the directory's name to the --export-dest.
-            It will then locate the abook files associated with the specified subject, convert a copy to csv and place that csv file into the new directory.
 
             The default location for the exported data is /root/cpanel-squirrelmail-exports/csv-export-epoch/
-            It is possible to choose a custom export destination with the --export-dest option.
 
             Options:
             --all ----------- REQUIRED - Converts all addressbooks found within the /home directory. Mutually exclusive with --cpanel-acct --domain and --email-acct.
