@@ -64,7 +64,7 @@ if (-d $sourceDir) {
 		my $count = `wc -l < $file`;
 		if ($count < 1) { message ("NOTICE: $file appears to be empty so it has been skipped and not mailed.", 1, 1, 0); next; }
 	 	open( my $fh, "<", $file) or die "Can't open < $file: $!";
-		my $file_content = do { local $/; <$fh> };
+		my $file_content = do { local $/; $fh};
 		if ($count == 1 and $file_content =~ "Nickname" ) { message ("NOTICE: $file appears to only contain header information so it has been skipped and not mailed.", 1, 1, 0); next; }
 		my %attachment;
 		$attachment{'content'} = $fh;
