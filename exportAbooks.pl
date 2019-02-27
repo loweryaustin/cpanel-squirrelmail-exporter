@@ -165,7 +165,7 @@ sub abookToCSV {
 	my $ABOOK;
 	
 	my ($volume,$directories,$file) = File::Spec->splitpath($abookPath);
-	unless (open $ABOOK, $abookPath) { 
+	unless (open $ABOOK,"<", $abookPath) { 
 		message("ERROR: Unable to open $abookPath for reading.", 1, 1, 0); 
 		return 0; 
 	}
