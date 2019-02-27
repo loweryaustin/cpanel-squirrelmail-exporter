@@ -184,6 +184,9 @@ sub abookToCSV {
 		$newRow =~ s/,$//ig; # Remove trailing commas
 		$csvAddressBook = "$csvAddressBook$newRow\r\n"; # Append each new row to the address book
 	}
+
+	close $ABOOK;
+
 	my $csvDestination = "$exportDestDir/$file.csv"; # Ends up being /path/to/csv/export/dir/someone@domain.tld.abook.csv
 	write_file ($csvDestination, $csvAddressBook);
 	message("INFO: $epoch Converted $abookPath -> $csvDestination", 1, 1, 0);

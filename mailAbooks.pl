@@ -74,6 +74,7 @@ if (-d $sourceDir) {
 		$to[0] =~ s/.abook.csv//ig;
 		sendMessage(\@to, "Your SquirrelMail AddressBook", $emailTemplate, "root\@$host", \@attachments);
 		message ("INFO: $file file has been mailed to $to[0] .", 1, 1, 0);
+		close $fh;
 	}
 	message ("INFO: Mailing has concluded. Check /var/log/exim_mainlog if you have any doubts or concerns about the messages that were sent.", 1, 1, 0);
 	message ("INFO: You may view the above output at the following log $logFile", 1, 1, 0);
