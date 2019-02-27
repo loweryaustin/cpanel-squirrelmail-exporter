@@ -35,7 +35,7 @@ if ($help) {
 ($emailTemplate = qq{
     Hello,
 
-    Your SquirrelMail addressbook has been exported and attacthed to this email.
+    Your SquirrelMail address book has been exported and attached to this email.
 
     You may import the attached file to RoundCube and Horde with the following instructions:
 
