@@ -130,3 +130,5 @@ sub message {
         if ($stdOut and not $silent) { print $message }
 	return;
 }
+
+1;
