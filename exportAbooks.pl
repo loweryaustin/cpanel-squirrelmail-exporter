@@ -161,15 +161,17 @@ sub abookToCSV {
 	my $abookPath     = $_[0];
 	my $exportDestDir = $_[1];
 	
+	my $ABOOK;
+	
 	my ($volume,$directories,$file) = File::Spec->splitpath($abookPath);
-	unless (open ABOOK, $abookPath) { 
+	unless (open $ABOOK, $abookPath) { 
 		message("ERROR: Unable to open $abookPath for reading.", 1, 1, 0); 
 		return 0; 
 	}
 	
 	my $csvAddressBook = '"Nickname","First Name","Last Name","Email","Notes"'."\r\n";
 	if ($noHeader) { $csvAddressBook = ""; };
-	while (my $row = <ABOOK>) {
+	while (my $row = <$ABOOK>) {
 		my @cols = split(/\|/, $row);
 		my $newRow;
 		foreach my $column (@cols) {
@@ -178,6 +180,7 @@ sub abookToCSV {
 			$column = "\"$column\","; # Enclose fields in double quotes to escape all other unexpected chars
 			$newRow = "$newRow$column";
 		}
+
 		$newRow =~ s/,$//ig; # Remove trailing commas
 		$csvAddressBook = "$csvAddressBook$newRow\r\n"; # Append each new row to the address book
 	}
