@@ -154,6 +154,7 @@ sub exportToCSV {
 	} else {
 		message("ERROR: Unexpected subjectType of: $subjectType.", 1, 0, 1);
 	}
+return;
 }
 
 
@@ -190,7 +191,7 @@ sub abookToCSV {
 	my $csvDestination = "$exportDestDir/$file.csv"; # Ends up being /path/to/csv/export/dir/someone@domain.tld.abook.csv
 	write_file ($csvDestination, $csvAddressBook);
 	message("INFO: $epoch Converted $abookPath -> $csvDestination", 1, 1, 0);
-
+return;
 }
 
 sub getSqMailData {
@@ -231,6 +232,7 @@ sub message {
 		exit;
 	}
 	if ($stdOut and not $silent) { print $message }
+return;
 }
 
 sub writeLog {
@@ -241,6 +243,7 @@ sub writeLog {
 	open (my $fh, '>>', $logFile) or die "Could not open $logFile for writing";
 	print $fh "$timeStamp $message";
 	close $fh;
+return;
 }
 
 sub validateLogPath {

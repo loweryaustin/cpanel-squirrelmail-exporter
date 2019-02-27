@@ -93,6 +93,7 @@ sub sendMessage {
 	$opts{'attachments'}  =  $_[4];
 
 	Cpanel::Email::Send::email_message( \%opts );
+return;
 }
 
 sub writeLog {
@@ -103,6 +104,7 @@ sub writeLog {
 	open (my $fh, '>>', $logFile) or die "Could not open $logFile for writing";
 	print $fh "$timeStamp $message";
 	close $fh;
+return;
 }
 
 sub message {
@@ -126,4 +128,5 @@ sub message {
                 exit;
         }
         if ($stdOut and not $silent) { print $message }
+	return;
 }
