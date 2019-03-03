@@ -6,6 +6,7 @@ use IO::Handle;
 use Data::Dumper;
 use Time::Piece;
 use POSIX qw(strftime);
+use Text::CSV;
 use File::Spec::Functions;
 use File::Path qw(make_path);
 use Getopt::Long qw(GetOptions);
@@ -163,7 +164,9 @@ sub abookToCSV {
 	my $exportDestDir = $_[1];
 	
 	my $ABOOK;
-	
+	my $reader = Text::CSV->new({ sep_char => '|', binary => 1});
+	my $writer = Text::CSV->new({ eol => "\r\n", binary => 1 });
+
 	my ($volume,$directories,$file) = File::Spec->splitpath($abookPath);
 	unless (open $ABOOK,"<", $abookPath) { 
 		message("ERROR: Unable to open $abookPath for reading.", 1, 1, 0); 
@@ -172,18 +175,13 @@ sub abookToCSV {
 	
 	my $csvAddressBook = '"Nickname","First Name","Last Name","Email","Notes"'."\r\n";
 	if ($noHeader) { $csvAddressBook = ""; };
-	while (my $row = <$ABOOK>) {
-		my @cols = split(/\|/, $row);
-		my $newRow;
-		foreach my $column (@cols) {
-			chomp $column;
-			$column =~ s/\"/\"\"/ig;  # Escape double quotes as per RFC-4180
-			$column = "\"$column\","; # Enclose fields in double quotes to escape all other unexpected chars
-			$newRow = "$newRow$column";
-		}
 
-		$newRow =~ s/,$//ig; # Remove trailing commas
-		$csvAddressBook = "$csvAddressBook$newRow\r\n"; # Append each new row to the address book
+	while (my $row = $reader->getline($ABOOK)) {
+		if($writer->combine(@{$row})){
+			$csvAddressBook .= $writer->string();
+		}else{
+			message("ERROR: Unable combine row.", 1, 1, 0);
+		}
 	}
 
 	close $ABOOK;
