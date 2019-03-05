@@ -5,7 +5,7 @@ These two scripts make transitioning from SquirrelMail AddressBooks to RoundCube
 
 The following is an example of using the exportAbooks.pl script to export all the addressbooks on a server:
 ```
-[root@srv00001 ~]# perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all
+[root@srv00001 ~]# /usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all
 INFO: 1548113433 Converted /home/dundermifflin/.sqmaildata/rob.california@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1548113433/rob.california@dundermifflin.com.abook.csv
 INFO: 1548113433 Converted /home/dundermifflin/.sqmaildata/ryan@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1548113433/ryan@dundermifflin.com.abook.csv
 INFO: 1548113433 Converted /home/dundermifflin/.sqmaildata/schrutefarms@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1548113433/schrutefarms@dundermifflin.com.abook.csv
@@ -99,10 +99,10 @@ This software was not created by and is not supported by cPanel. It has been cre
 ### Examples
 Export all addressbooks found within the /home directory:
 
-`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all`
+`/usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all`
 
 ```
-[root@srv00001 ~]# perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all
+[root@srv00001 ~]# /usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --all
 INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/rob.california@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/rob.california@dundermifflin.com.abook.csv
 INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/ryan@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/ryan@dundermifflin.com.abook.csv
 INFO: 1547989334 Converted /home/dundermifflin/.sqmaildata/schrutefarms@dundermifflin.com.abook -> /root/cpanel-squirrelmail-exports/csv-export-1547989334/schrutefarms@dundermifflin.com.abook.csv
@@ -128,19 +128,19 @@ INFO: You may review the above output at the following log file: /root/cpanel-sq
 
 Export the addressbook for a single email account:
 
-`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --email-acct user@domain.tld`
+`/usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --email-acct user@domain.tld`
 
 Export all addressbooks found within a cPanel account:
 
-`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct cpanelusername`
+`/usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct cpanelusername`
 
 Export all addressbooks for a domain:
 
-`perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --domain domain.tld`
+`/usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --domain domain.tld`
 
 Export all addressboks on the server by cpanel username (Automatically detects custom home directories unlike the --all flag):
 
-`for user in $(cut -d":" -f1 /etc/trueuserowners);do perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct $user ;done`
+`for user in $(cut -d":" -f1 /etc/trueuserowners);do /usr/local/cpanel/3rdparty/bin/perl <(curl -s https://raw.githubusercontent.com/loweryaustin/cpanel-squirrelmail-exporter/master/exportAbooks.pl) --cpanel-acct $user ;done`
 
 ## The mailAbooks.pl script
 
