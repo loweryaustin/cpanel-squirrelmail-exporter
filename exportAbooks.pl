@@ -1,7 +1,11 @@
 #!/usr/local/cpanel/3rdparty/bin/perl
+package ExportSquirrel;
+
 use 5.010;
+
 use strict;
 use warnings;
+
 use IO::Handle;
 use Data::Dumper;
 use Time::Piece;
@@ -9,46 +13,63 @@ use POSIX qw(strftime);
 use Text::CSV;
 use File::Spec::Functions;
 use File::Path qw(make_path);
-use Getopt::Long qw(GetOptions);
-Getopt::Long::Configure qw(gnu_getopt);
+
+use Getopt::Long qw(GetOptionsFromArray);
 
 use lib '/usr/local/cpanel';
 use Cpanel::Domain::Owner;
 use Cpanel::PwCache ();
 
+exit main(@ARGV) unless caller;
+
 ## Global Vars
-my $toCSV = 1; # Setting this to true by default for now since this is just a placeholder till other export methods are added.
-my $logFile = "/root/cpanel-squirrelmail-export.log";
-my $silent = 0;
-my $epoch = time();
-my $exportDestPrefix = "/root/cpanel-squirrelmail-exports";
-my $subjectType;
-my $subject;
-my $optName;
-my $optValue; 
-my @exclusiveOptNames;
-my $help;
-my $noHeader;
-GetOptions(
-    'mostly-silent'        => \$silent,
-    'domain=s'             => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
-    'email-acct=s'         => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
-    'cpanel-acct=s'        => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = $optValue; },
-    'all'                  => sub {  ($optName, $optValue) = @_; push @exclusiveOptNames,$optName; $subject = 'all';     },
-    'export-dest=s'        => sub {  ($optName, $optValue) = @_; $exportDestPrefix = $optValue; $exportDestPrefix =~ s/\/$//ig; },
-    'to-csv'               => \$toCSV,
-    'no-header'            => \$noHeader,
-    'help'                 => \$help,
-    'log-path=s'           => sub { my ($optName, $optValue) = @_; if (validateLogPath($optValue)) { $logFile = $optValue }}
-) or message("Use --help", 1, 0, 1);
+sub main {
+    my @args = @_;
+    my $epoch = time();
+    my $exportDestPrefix = "/root/cpanel-squirrelmail-exports";
 
-if ($> != 0) { message("ERROR: This script must be run as the root user.", 1, 0, 1) }
+    my (@domains, @emails, @accts, $do_all_accounts, $export_dest, $logFile, $toCSV, $silent, $help, $noHeader);
+    GetOptionsFromArray(\@args,
+        'mostly-silent'        => \$silent,
+        'domain=s@'            => \@domains,
+        'email-acct=s@'        => \@emails,
+        'cpanel-acct=s@'       => \@accts,
+        'all'                  => \$do_all_accounts,
+        'export-dest=s@'       => \$export_dest,
+        'to-csv'               => \$toCSV,
+        'no-header'            => \$noHeader,
+        'help'                 => \$help,
+        'log-path=s'           => \$logFile,
+    );
 
-if ($help){
+    $silent //= 0;
+    $toCSV //= 1; # Setting this to true by default for now since this is just a placeholder till other export methods are added.
+    $logFile //= "/root/cpanel-squirrelmail-export.log";
+    $export_dest //= "$exportDestPrefix/csv-export-$epoch";
+
+    return help(0) if $help;
+    return help(2, "This script must be run as the root user.") if $> != 0;
+    return help(1, "Invalid log path") if !validateLogPath($logFile, $silent);
+
+    my $difference = abs(scalar(@domains) - scalar(@emails) - scalar(@accts) - int($do_all_accounts));
+    my $sum        = scalar(@domains) + scalar(@emails) + scalar(@accts) + int($do_all_accounts);
+    return help(3, "You must use only one of the following options: --domain --email-acct --cpanel-acct --all") if $difference != $sum;
+    return help(4, "You must use one of the following options: --domain --email-acct --cpanel-acct --all") unless $sum;
+
+    exportToCSV(\@domains, \@emails, \@accts, $do_all_accounts, $export_dest, $logFile, $toCSV, $silent, $help, $noHeader) if $toCSV;
+
+    message("INFO: You may review the above output at the following log file: $logFile", 1, 0, 0, $silent);
+    return 0;
+}
+## Subs
+
+sub help {
+    my ($code,$msg) =@_;
+    message("ERROR: $msg", 1, 0, 1) if $msg;
 	(my $message = qq{
             Usage:
             $0 [ --domain | --email-acct | --cpanel-acct | --all ] subject
-            
+
             This script will convert the squirrellmail address books associated with the subject to csv format.
             The subject can be one of:
                 - A cPanel account username
@@ -63,7 +84,7 @@ if ($help){
 
             Options:
             --all ----------- REQUIRED - Converts all addressbooks found within the /home directory. Mutually exclusive with --cpanel-acct --domain and --email-acct.
-            
+
             --cpanel-acct --- REQUIRED - Specify a cPanel account for which you would like to export all of the squirrelmail addressbooks. Mutually exclusive with --domain --all  and --email-acct.
 
             --email-acct ---- REQUIRED - Specify an individual email account that you would like to export the squirrelmail addressbook for. Mutually exclusive with --domain --all and --cpanel-acct.
@@ -77,7 +98,7 @@ if ($help){
             --log-path ------ OPTIONAL - Allows you to specify a custom log file location. An absolute path is required. The file does not need pre exist. The default log file is: /root/cpanel-squirrelmail-export.log
 
             --mostly-silent - OPTIONAL - This was supposed to be silent, but I could only manage mostly silent before I gave up and decided it was more important to ship than to fiddle with it.
-            
+
             --no-header ----- OPTIONAL - Prevents the creation of the header row when creating the CSV files.
 
             I welcome any improvements, bug reports, commentary, etc in the form of issues and pull requests at the following github page:
@@ -87,90 +108,71 @@ if ($help){
 
             }) =~ s/^ {12}//mg;
 	print $message;
-	exit;	
+    return $code;
 }
 
-if (scalar @exclusiveOptNames > 1) { 
-	message("ERROR: You must use only one of the following options: --domain --email-acct --cpanel-acct", 1, 0, 1); 
-} elsif (defined $exclusiveOptNames[0] and length $exclusiveOptNames[0]) {
-	$subjectType = $exclusiveOptNames[0];
-} else {
-	message("ERROR: You must use one of the following options: --domain --email-acct --cpanel-acct", 1, 0, 1);
-}
-
-if ($toCSV){
-	exportToCSV();
-} else {
-	## TODO: Allow for exporting to other fomats such as vcard, or directly into horde or roundcube
-}
-
-message("INFO: You may review the above output at the following log file: $logFile", 1, 0, 0);
-
-## Subs
 
 sub exportToCSV {
-	my $exportDestDir = "$exportDestPrefix/csv-export-$epoch";
+    my ( $domains, $emails, $accts, $do_all_accounts, $exportDestDir, $logFile, $toCSV, $silent, $help, $noHeader) = @_;
 	make_path $exportDestDir;
-		
-	if ($subjectType eq 'email-acct'){
-		my @emailParts = split(/@/, $subject);
+
+    foreach my $email (@$emails) {
+		my @emailParts = split(/@/, $email);
 		my $domain = $emailParts[1];
 		my $cpanelAcct = Cpanel::Domain::Owner::get_owner_or_die($domain);
-		my $sqMailData = getSqMailData($cpanelAcct); 
-		my $abookPath = "$sqMailData/$subject.abook";
-		abookToCSV ($abookPath, $exportDestDir);
-	} elsif ($subjectType eq 'domain') {
-		my $cpanelAcct = Cpanel::Domain::Owner::get_owner_or_die($subject);
-		my $sqMailData = getSqMailData($cpanelAcct);
-	
+		my $sqMailData = getSqMailData($cpanelAcct, $email, $silent);
+		my $abookPath = "$sqMailData/$email.abook";
+		abookToCSV ($abookPath, $exportDestDir, $noHeader, $silent, $logFile);
+    }
+    foreach my $domain (@$domains) {
+		my $cpanelAcct = Cpanel::Domain::Owner::get_owner_or_die($domain);
+		my $sqMailData = getSqMailData($cpanelAcct, $domain, $silent);
+
 		opendir(DIR, $sqMailData);
-		my @files = grep(/$subject\.abook$/,readdir(DIR)); # Only work on abook files for the subject domain
+		my @files = grep(/$domain\.abook$/,readdir(DIR)); # Only work on abook files for the subject domain
 		closedir(DIR);
 
-		if (scalar @files < 1) { message("NOTICE: No SquirrelMail address books found for the $subject domain in the $sqMailData directory.", 1, 0, 1) }
+		if (scalar @files < 1) { message("NOTICE: No SquirrelMail address books found for the $domain domain in the $sqMailData directory.", 1, 0, 1, $silent) }
 
 		foreach my $file (@files) {
 			my $abookPath = "$sqMailData/$file";
-			abookToCSV($abookPath, $exportDestDir);
-		} 
-	} elsif ($subjectType eq 'cpanel-acct') {	
-		my $sqMailData = getSqMailData($subject);
-		
+			abookToCSV($abookPath, $exportDestDir,$noHeader, $silent,$logFile);
+		}
+    }
+    foreach my $acct (@$accts) {
+		my $sqMailData = getSqMailData($acct, $acct, $silent);
 		opendir(DIR, $sqMailData);
 		my @files = grep(/\.abook$/,readdir(DIR));
 		closedir(DIR);
 
-		if (scalar @files < 1) { message("NOTICE: No SquirrelMail address books found for the $subject cPanel account in the $sqMailData directory.", 1, 0, 1) }
+		message("NOTICE: No SquirrelMail address books found for the $acct cPanel account in the $sqMailData directory.", 1, 0, 1, $silent) unless @files;
 
 		foreach my $file (@files) {
 			my $abookPath = "$sqMailData/$file";
-			abookToCSV($abookPath, $exportDestDir);
+			abookToCSV($abookPath, $exportDestDir, $noHeader, $silent, $logFile);
 		}
-	} elsif ($subjectType eq 'all') {
-		my @files = `find /home/*/.sqmaildata/ -name "*.abook"`; 
-		foreach my $file (@files) {
-			chomp $file;
-			abookToCSV($file, $exportDestDir);	
-		}	
-	} else {
-		message("ERROR: Unexpected subjectType of: $subjectType.", 1, 0, 1);
-	}
-return;
+    }
+
+	return unless $do_all_accounts;
+    my @files = `find /home/*/.sqmaildata/ -name "*.abook"`;
+    foreach my $file (@files) {
+        chomp $file;
+        abookToCSV($file, $exportDestDir, $noHeader,$silent, $logFile);
+    }
+    return;
 }
 
 
 sub abookToCSV {
-	my $abookPath     = $_[0];
-	my $exportDestDir = $_[1];
-	
+	my ($abookPath, $exportDestDir, $noHeader, $silent, $log) = @_;
 	my $ABOOK;
 	my $reader = Text::CSV->new({ sep_char => '|', binary => 1});
 	my $writer = Text::CSV->new({ eol => "\r\n", binary => 1 });
 
 	my ($volume,$directories,$file) = File::Spec->splitpath($abookPath);
-	unless (open $ABOOK,"<", $abookPath) { 
-		message("ERROR: Unable to open $abookPath for reading.", 1, 1, 0); 
-		return 0; 
+	unless (open $ABOOK,"<", $abookPath) {
+		message("ERROR: Unable to open $abookPath for reading.", 1, $log, 0, $silent);
+		return 0;
 	}
 	
 	my $csvAddressBook = '"Nickname","First Name","Last Name","Email","Notes"'."\r\n";
@@ -180,7 +182,7 @@ sub abookToCSV {
 		if($writer->combine(@{$row})){
 			$csvAddressBook .= $writer->string();
 		}else{
-			message("ERROR: Unable combine row.", 1, 1, 0);
+			message("ERROR: Unable combine row.", 1, $log, 0, $silent);
 		}
 	}
 
@@ -188,16 +190,16 @@ sub abookToCSV {
 
 	my $csvDestination = "$exportDestDir/$file.csv"; # Ends up being /path/to/csv/export/dir/someone@domain.tld.abook.csv
 	write_file ($csvDestination, $csvAddressBook);
-	message("INFO: $epoch Converted $abookPath -> $csvDestination", 1, 1, 0);
+	message("INFO: Converted $abookPath -> $csvDestination", 1, $log, 0, $silent);
 return;
 }
 
 sub getSqMailData {
-	my $cpanelAcct = $_[0];
+	my ($cpanelAcct,$subject,$silent) = @_;
 	my $homeDir = Cpanel::PwCache::gethomedir($cpanelAcct);
-	if (not $homeDir) { message("ERROR: There was a problem locating the home directory of the $cpanelAcct username. Are you sure this a valid cPanel user?", 1, 0, 1) }
+	if (not $homeDir) { message("ERROR: There was a problem locating the home directory of the $cpanelAcct username. Are you sure this a valid cPanel user?", 1, 0, 1, $silent) }
 	my $sqMailData = "$homeDir/.sqmaildata";
-	if (not -d $sqMailData) { message("NOTICE: $sqMailData does not exist. It seems that there are no SquirrelMail users for $subject .", 1, 0, 1) }
+	if (not -d $sqMailData) { message("NOTICE: $sqMailData does not exist. It seems that there are no SquirrelMail users for $subject .", 1, 0, 1, $silent) }
 	return $sqMailData;
 }
 
@@ -210,23 +212,19 @@ sub write_file {
 }
 
 sub message {
-	my $message = $_[0];
-	my $stdOut  = $_[1];
-	my $log     = $_[2];
-	my $die     = $_[3];
-	
+    my ($message, $stdOut, $log, $die, $silent ) = @_;
 	chomp($message);
 	$message = "$message\n";
 
-	if ($log) { writeLog($message) }
-	if ($die and not $silent) { 
+	if ($log) { writeLog($message, $log) }
+	if ($die and not $silent) {
 		die $message;
 	} elsif ($die and $silent and $log) {
-		writeLog ($message);
+		writeLog ($message, $log);
 		exit;
 	} elsif ($die and $silent and not $log) {
 		# Even if the original intention was to not log, we're going to override this so that the script never dies without saying *something*
-		writeLog($message);
+		writeLog($message, $log);
 		exit;
 	}
 	if ($stdOut and not $silent) { print $message }
@@ -234,7 +232,7 @@ return;
 }
 
 sub writeLog {
-	my $message = $_[0];
+	my ($message,$logFile) = @_;
 	
 	my $timeStamp = strftime "%D %T", localtime;
 	
@@ -245,18 +243,18 @@ return;
 }
 
 sub validateLogPath {
-	$logFile = $_[0];
+	my ($logFile, $silent) = @_;
 	
 	if (not File::Spec->file_name_is_absolute( $logFile )) { die "ERROR: The --log-path option only accepts absolute paths. $logFile is not an absolute path.\n" }
 	if (-f $logFile and -w $logFile) {
-		if (-z $logFile) { message("INFO: Initiating custom log at $logFile", 1, 1, 0) }
+		if (-z $logFile) { message("INFO: Initiating custom log at $logFile", 1, $logFile, 0,$silent) }
 		return 1;
 	} elsif (-d $logFile) {
 		die ("ERROR: The --log-path option does not accept paths to directories. Please provide the path to a file instead. NOTE: The file does not necesarily have to already exist.\n");
 	} elsif (not -e $logFile) { 
 		my ($volume,$directories,$file) = File::Spec->splitpath($logFile);
 		make_path $directories;
-		message ("INFO: Initiating custom log at $logFile", 1, 1, 0);
+		message ("INFO: Initiating custom log at $logFile", 1, $logFile, 0, $silent);
 		return 1;
 	}
 }
